@@ -1,0 +1,91 @@
+# .github/workflows/compile.yml
+name: Java Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  compile:
+    name: Compile Java Backend
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: hospitalcms
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mongodb:
+        image: mongo:6.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: adminpassword
+          MONGO_INITDB_DATABASE: hospitalcms
+        ports:
+          - 27017:27017
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java 17
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Step 3: Grant execute permission for Maven wrapper
+      - name: Grant Execute Permission for mvnw
+        run: chmod +x mvnw
+
+      # Step 4: Compile the project
+      - name: Compile with Maven
+        run: ./mvnw compile
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/hospitalcms?useSSL=false&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: user
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_DATA_MONGODB_URI: mongodb://admin:adminpassword@localhost:27017/hospitalcms?authSource=admin
+          JWT_SECRET: test_jwt_secret_key_for_github_actions
+
+      # Step 5: Build the project (skip tests)
+      - name: Build with Maven
+        run: ./mvnw package -DskipTests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/hospitalcms?useSSL=false&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: user
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_DATA_MONGODB_URI: mongodb://admin:adminpassword@localhost:27017/hospitalcms?authSource=admin
+          JWT_SECRET: test_jwt_secret_key_for_github_actions
+
+      # Step 6: Upload the built JAR as an artifact
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hospital-cms-jar
+          path: target/*.jar
+          retention-days: 7
+
+      # Step 7: Print success message
+      - name: Compilation Successful
+        run: echo "✅ Java Backend compiled and built successfully!"
