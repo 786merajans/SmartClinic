@@ -113,4 +113,24 @@ public class AppointmentService {
                         .findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
                                 doctorId, patientName, start, end);
             }
-            return appointmentRepository.findByDoctorIdAndAppointmentTim
+            return appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, start, end);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    // 8. Change Status
+    @Transactional
+    public Map<String, Object> changeStatus(int status, long appointmentId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            appointmentRepository.updateStatus(status, appointmentId);
+            response.put("status", 1);
+            response.put("message", "Appointment status updated successfully");
+        } catch (Exception e) {
+            response.put("status", 0);
+            response.put("message", "Error updating status: " + e.getMessage());
+        }
+        return response;
+    }
+}
