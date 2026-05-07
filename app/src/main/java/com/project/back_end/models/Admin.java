@@ -1,68 +1,61 @@
 package com.project.back_end.models;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
-public class Appointment {
+public class Admin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
     @NotNull
-    private Doctor doctor;
-
-    @ManyToOne
-    @NotNull
-    private Patient patient;
-
-    @Future
-    private LocalDateTime appointmentTime;
+    private String username;
 
     @NotNull
-    private int status;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
 
-    public Appointment() {}
+    // --- Constructors ---
 
-    public Appointment(Doctor doctor, Patient patient, LocalDateTime appointmentTime, int status) {
-        this.doctor = doctor;
-        this.patient = patient;
-        this.appointmentTime = appointmentTime;
-        this.status = status;
+    // No-argument constructor required by JPA
+    public Admin() {
     }
 
-    @Transient
-    public LocalDateTime getEndTime() {
-        return appointmentTime != null ? appointmentTime.plusHours(1) : null;
+    // Parameterized constructor
+    public Admin(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
-    @Transient
-    public LocalDate getAppointmentDate() {
-        return appointmentTime != null ? appointmentTime.toLocalDate() : null;
+    // --- Getters and Setters ---
+
+    public Long getId() {
+        return id;
     }
 
-    @Transient
-    public LocalTime getAppointmentTimeOnly() {
-        return appointmentTime != null ? appointmentTime.toLocalTime() : null;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public String getUsername() {
+        return username;
+    }
 
-    public Doctor getDoctor() { return doctor; }
-    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
+    public String getPassword() {
+        return password;
+    }
 
-    public LocalDateTime getAppointmentTime() { return appointmentTime; }
-    public void setAppointmentTime(LocalDateTime appointmentTime) { this.appointmentTime = appointmentTime; }
-
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
